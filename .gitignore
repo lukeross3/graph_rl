@@ -1,0 +1,6 @@
+# Testing-related files
+.coverage
+__pycache__/*
+
+# Binaries
+*.pyc
