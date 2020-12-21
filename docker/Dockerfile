@@ -13,7 +13,14 @@ RUN apt update && \
                    python3-pip && \
     rm -rf /var/lib/apt/lists
 
+# Install python requirements
+ADD requirements.txt /requirements.txt
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install -r /requirements.txt
+
 # Clone git repo
 RUN mkdir /proj && \
     cd /proj && \
-    git clone git@github.com:lukeross3/graph_rl.git
+    mkdir ~/.ssh/ && \
+    ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+    # git clone git@github.com:lukeross3/graph_rl.git
