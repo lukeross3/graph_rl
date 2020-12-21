@@ -10,7 +10,11 @@ python = "^3.6"
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 coverage = "^5.3.1"
+black = "^20.8b1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
