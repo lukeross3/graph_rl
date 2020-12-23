@@ -22,5 +22,4 @@ RUN python3 -m pip install --upgrade pip && \
 RUN mkdir /proj && \
     cd /proj && \
     mkdir ~/.ssh/ && \
-    ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
-    # git clone git@github.com:lukeross3/graph_rl.git
+    git clone https://github.com/lukeross3/graph_rl.git
