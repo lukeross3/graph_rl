@@ -9,6 +9,7 @@ RUN apt update && \
                    vim \
                    curl \
                    ca-certificates \
+                   mpich \
                    python3 \
                    python3-pip && \
     rm -rf /var/lib/apt/lists
