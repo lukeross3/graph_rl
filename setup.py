@@ -21,7 +21,7 @@ setup(
     packages=["graph_rl"],
     package_dir={"": "."},
     package_data={},
-    install_requires=["mpi4py==3.*,>=3.0.3", "numpy==1.*,>=1.19.4", "toml==0.*,>=0.10.2"],
+    install_requires=["mpi4py==3.*,>=3.0.3", "numpy==1.*,>=1.19.4"],
     extras_require={
         "dev": [
             "black==20.*,>=20.8.0.b1",
@@ -29,6 +29,7 @@ setup(
             "dephell==0.*,>=0.8.3",
             "pytest==5.*,>=5.2.0",
             "pytest-mock==3.*,>=3.4.0",
+            "toml==0.*,>=0.10.2",
         ]
     },
 )

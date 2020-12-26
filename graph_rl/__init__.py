@@ -1,10 +1,4 @@
-import os
-import toml
-
-pyproj = toml.load(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, "pyproject.toml")
-)
-__version__ = pyproj["tool"]["poetry"]["version"]
+__version__ = "0.1.0"
 
 from .nodes import Node, AddOne, Timing
 from .graph import Graph
