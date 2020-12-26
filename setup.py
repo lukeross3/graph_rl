@@ -21,7 +21,7 @@ setup(
     packages=["graph_rl"],
     package_dir={"": "."},
     package_data={},
-    install_requires=["mpi4py==3.*,>=3.0.3", "numpy==1.*,>=1.19.4"],
+    install_requires=["mpi4py==3.*,>=3.0.3", "numpy==1.*,>=1.19.4", "toml==0.*,>=0.10.2"],
     extras_require={
         "dev": [
             "black==20.*,>=20.8.0.b1",

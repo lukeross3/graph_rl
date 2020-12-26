@@ -51,3 +51,6 @@ numpy==1.19.4; python_version >= "3.6" \
     --hash=sha256:4377e10b874e653fe96985c05feed2225c912e328c8a26541f7fc600fb9c637b \
     --hash=sha256:2a2740aa9733d2e5b2dfb33639d98a64c3b0f24765fed86b0fd2aec07f6a0a08 \
     --hash=sha256:141ec3a3300ab89c7f2b0775289954d193cc8edb621ea05f99db9cb181530512
+toml==0.10.2; (python_version >= "2.6" and python_full_version < "3.0.0") or (python_full_version >= "3.3.0") \
+    --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
+    --hash=sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f
