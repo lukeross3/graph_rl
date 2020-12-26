@@ -1,9 +1,5 @@
 .PHONY: test docker
 
-test:
-	coverage run --source=graph_rl/ -m pytest tests/
-	coverage report -m
-
 version:
 	python3 scripts/update_version.py
 
@@ -18,9 +14,18 @@ requirements:
 
 reqs: setup requirements version
 
+install: reqs
+	poetry install
+
 black:
 	black -l 100 .
+
+test:
+	coverage run --source=graph_rl/ -m pytest tests/
+	coverage report -m
 
 docker:
 	cd docker && \
 	docker build -t graph_rl:test .
+
+all: reqs black test docker

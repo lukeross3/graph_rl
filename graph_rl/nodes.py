@@ -7,15 +7,15 @@ class Node(ABC):
     """Abstract base class for the basic unit of computation in a computation graph."""
 
     def __init__(self):
-        self.input_dependencies = None
-        self.output_dependencies = None
+        self.input_dependencies = []
+        self.output_dependencies = []
         self.output = None
 
     @abstractmethod
     def forward(self, x: Any) -> Any:
         """Run the computation on input x. Note the default implementation sets the output member
         and returns the input, so overriding classes should compute the output y, then return
-        super().fordward(y) in order to set the relevant members.
+        super().forward(y) in order to set the relevant members.
 
         Args:
             x (Any): Input to computation
@@ -29,6 +29,23 @@ class Node(ABC):
     def reset(self):
         """Reset the Node's output value to be None"""
         self.output = None
+
+
+class AddOne(Node):
+    """Testing Node which adds 1 to the scalar input value"""
+
+    def forward(self, x: float) -> float:
+        """Add one to the scalar input
+
+        Args:
+            x (float): Input scalar
+
+        Returns:
+            float: Output scalar
+        """
+        print(x)
+        y = x + 1
+        return super().forward(y)
 
 
 class Timing(Node):
