@@ -43,7 +43,6 @@ class AddOne(Node):
         Returns:
             float: Output scalar
         """
-        print(x)
         y = x + 1
         return super().forward(y)
 
