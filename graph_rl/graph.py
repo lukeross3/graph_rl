@@ -40,7 +40,7 @@ class Graph:
         for (input_idx, output_idx) in connections:
 
             # Check that the connection is valid
-            if input_idx >= output_idx:
+            if input_idx > output_idx:
                 raise ValueError(
                     f"Invalid connection ({input_idx}, {output_idx}): Input index must be greater "
                     "than output index to ensure a directed acyclic graph (tree)."
