@@ -8,6 +8,14 @@ from graph_rl import Node
 class Graph:
     """Implements the computation graph with MPI. Requires a list of nodes, a list of their
     connections, and the MPI Comm object for parallel computing and message passing.
+
+    NOTE: The input dependencies for each node will be set in the order they are provided. For
+        this reason, it is recommended that Nodes not use multiple inputs when the Node operation
+        is not commutative, because the order of connections when initializing the graph could
+        change the order of input dependencies, changing the execution of the graph. Named key
+        value pairs in python dicts provide a better programming interface for nodes in the graph.
+        The output node simply names its output(s) and returns it/them as a python dict. Subsequent
+        Nodes can then extract the value(s) based on expected names instead of argument order.
     """
 
     def __init__(
@@ -86,7 +94,7 @@ class Graph:
 
             # If no one needs output, skip the node
             output_dependencies = self.nodes[node_idx].output_dependencies
-            if len(output_dependencies) == 0 and node_idx != len(self.nodes)-1:
+            if len(output_dependencies) == 0 and node_idx != len(self.nodes) - 1:
                 continue
 
             # Get all required inputs for the current node before running the node
@@ -140,18 +148,3 @@ class Graph:
         """Reset each node in the graph, deleting any stored output_data"""
         for i in range(len(self.nodes)):
             self.nodes[i].reset()
-
-
-if __name__ == "__main__":
-    from graph_rl import AddOne
-    nodes = [AddOne() for _ in range(2)]
-    connections = [
-        (-1, 0),
-        (0, 1)
-    ]
-    comm = MPI.COMM_WORLD
-
-    g = Graph(nodes, connections, comm)
-    g.proc_init([0, 1])
-    output = g.forward(100)
-    print("Result:", g.comm.rank, output)

@@ -31,11 +31,20 @@ class Node(ABC):
         self.output = None
 
 
-class AddOne(Node):
-    """Testing Node which adds 1 to the scalar input value"""
+class AddN(Node):
+    """Testing Node which adds n to the scalar input value"""
+
+    def __init__(self, n: float = 1.0) -> None:
+        """Initialize the node
+
+        Args:
+            n (float, optional): value to add to the input during the forward pass. Defaults to 1.0.
+        """
+        super().__init__()
+        self.n = n
 
     def forward(self, x: float) -> float:
-        """Add one to the scalar input
+        """Add n to the scalar input
 
         Args:
             x (float): Input scalar
@@ -43,7 +52,7 @@ class AddOne(Node):
         Returns:
             float: Output scalar
         """
-        y = x + 1
+        y = x + self.n
         return super().forward(y)
 
 

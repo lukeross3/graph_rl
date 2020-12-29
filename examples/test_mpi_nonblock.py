@@ -15,7 +15,7 @@ def main():
         data = {"Hello": "World", "Data": np.arange(10)}
         comm.isend(data, dest=1, tag=13)
         comm.isend(data, dest=1, tag=13)
-        
+
     elif rank == 1:
         req1 = comm.irecv(source=0, tag=13)
         req2 = comm.irecv(source=0, tag=13)

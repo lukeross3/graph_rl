@@ -23,9 +23,17 @@ black:
 test:
 	coverage run --source=graph_rl/ -m pytest tests/
 	coverage report -m
+	rm .coverage*
+
+test-mpi:
+	mpiexec -np 2 coverage run --source=graph_rl/ -p -m pytest tests/ --with-mpi
+	coverage run --source=graph_rl/ --append -m pytest tests/
+	coverage combine -a
+	coverage report -m
+	rm .coverage*
 
 docker:
 	cd docker && \
 	docker build -t graph_rl:test .
 
-all: reqs black test docker
+all: reqs black test-mpi docker

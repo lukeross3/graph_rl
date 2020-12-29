@@ -556,6 +556,17 @@ pytest = ">=5.0"
 dev = ["pre-commit", "tox", "pytest-asyncio"]
 
 [[package]]
+name = "pytest-mpi"
+version = "0.4"
+description = "pytest plugin to collect information from tests"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+pytest = "*"
+
+[[package]]
 name = "regex"
 version = "2020.11.13"
 description = "Alternative regular expression module, to replace re."
@@ -701,7 +712,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "fefd16d57eb7fe61733953deaa716429a7bb2119daeda54a20008eb8f78a1548"
+content-hash = "1d8b18402d369221119e9026bcaa888b25b66b2332b8d9b11e00fd393e1f9781"
 
 [metadata.files]
 aiohttp = [
@@ -1075,6 +1086,9 @@ pytest = [
 pytest-mock = [
     {file = "pytest-mock-3.4.0.tar.gz", hash = "sha256:c3981f5edee6c4d1942250a60d9b39d38d5585398de1bfce057f925bdda720f4"},
     {file = "pytest_mock-3.4.0-py3-none-any.whl", hash = "sha256:c0fc979afac4aaba545cbd01e9c20736eb3fefb0a066558764b07d3de8f04ed3"},
+]
+pytest-mpi = [
+    {file = "pytest-mpi-0.4.tar.gz", hash = "sha256:8879c82a9e837bdb49a1675858a13ef22e61e379c983fd37491f876c299b8b31"},
 ]
 regex = [
     {file = "regex-2020.11.13-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:8b882a78c320478b12ff024e81dc7d43c1462aa4a3341c754ee65d857a521f85"},
