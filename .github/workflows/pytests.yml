@@ -36,4 +36,7 @@ jobs:
 #         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest tests/
+        mpiexec -np 2 coverage run --source=graph_rl/ -p -m pytest tests/ --with-mpi
+	      coverage run --source=graph_rl/ --append -m pytest tests/
+	      coverage combine -a
+	      coverage report -m
