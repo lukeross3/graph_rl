@@ -1,8 +1,7 @@
 .PHONY: test docker
 
-test:
-	coverage run --source=graph_rl/ -m pytest tests/
-	coverage report -m
+version:
+	python3 scripts/update_version.py
 
 setup:
 	poetry lock --no-update
@@ -13,11 +12,28 @@ requirements:
 	poetry export -f requirements.txt --output docker/requirements.txt
 	poetry export -f requirements.txt --dev --output docker/dev_requirements.txt
 
-reqs: setup requirements
+reqs: setup requirements version
+
+install: reqs
+	poetry install
 
 black:
 	black -l 100 .
 
+test:
+	coverage run --source=graph_rl/ -m pytest tests/
+	coverage report -m
+	rm .coverage*
+
+test-mpi:
+	mpiexec -np 2 coverage run --source=graph_rl/ -p -m pytest tests/ --with-mpi
+	coverage run --source=graph_rl/ --append -m pytest tests/
+	coverage combine -a
+	coverage report -m
+	rm .coverage*
+
 docker:
 	cd docker && \
 	docker build -t graph_rl:test .
+
+all: reqs black test-mpi docker
