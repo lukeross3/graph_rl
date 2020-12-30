@@ -24,3 +24,9 @@ RUN mkdir /proj && \
     cd /proj && \
     mkdir ~/.ssh/ && \
     git clone https://github.com/lukeross3/graph_rl.git
+
+# Set the working directory to the graph_rl project
+WORKDIR /proj/graph_rl/
+
+# Run bash so `docker run -it` opens to bash instead of python cli
+CMD ["/bin/bash"]
