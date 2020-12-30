@@ -80,3 +80,15 @@ class Timing(Node):
         """
         time.sleep(self.t)
         return super().forward(x)
+
+
+class Append(Node):
+    """Utility node which takes in an arbitrary list of *args and concats them as the return value"""
+
+    def forward(self, *args) -> List:
+        """Concatenate arbitrary inputs
+
+        Returns:
+            List: Concatenated inputs
+        """
+        return super().forward(list(args))

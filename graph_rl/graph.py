@@ -1,8 +1,9 @@
 from typing import List, Tuple, Any
 
+import numpy as np
 from mpi4py import MPI
 
-from graph_rl import Node
+from graph_rl.nodes import Node, Timing, Append
 
 
 class Graph:
@@ -148,3 +149,29 @@ class Graph:
         """Reset each node in the graph, deleting any stored output_data"""
         for i in range(len(self.nodes)):
             self.nodes[i].reset()
+
+
+class ParallelGraph(Graph):
+    def __init__(self, layers, width, comm, node_class=Timing):
+
+        # Initialize node list - L layers of width W, plus 1 output node
+        nodes = [node_class() for _ in range((layers * width))] + [Append()]
+
+        # Initialize parallel permutation connection pattern. Note that anywhere we use np.random,
+        # we must either set the seed across processors or broadcast the result from a single proc.
+        if comm.rank == 0:
+            connections = [(-1, i) for i in range(width)]  # input to first layer
+            for layer_idx in range(layers - 1):
+                permuted = np.random.permutation(np.arange(width))
+                layer_connections = [
+                    (layer_idx * width + i, (layer_idx + 1) * width + permuted[i])
+                    for i in range(width)
+                ]
+                connections.extend(layer_connections)
+            connections.extend([((layers - 1) * width + i, len(nodes) - 1) for i in range(width)])
+        else:
+            connections = None
+        connections = comm.bcast(connections, root=0)
+
+        # Super call
+        super().__init__(nodes, connections, comm)

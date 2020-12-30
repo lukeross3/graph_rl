@@ -14,12 +14,11 @@ requirements:
 
 reqs: setup requirements version
 
-# TODO: try adding new module and see if this fixes weird import issues
 install: reqs
-	poetry build
-	python3 -m pip install .
-	rm -r dist/
-	rm -r graph_rl.egg-info/
+	# poetry build
+	# python3 -m pip install .
+	# rm -rf dist/
+	# rm -rf graph_rl.egg-info/
 	poetry install
 
 black:
