@@ -40,4 +40,7 @@ docker:
 	cd docker && \
 	docker build -t graph_rl:test .
 
+run-jupyter:
+	jupyter lab --allow-root --ip=0.0.0.0 --port=8888 --no-browser --core-mode
+
 all: install black test-mpi docker

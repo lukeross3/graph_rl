@@ -152,10 +152,12 @@ class Graph:
 
 
 class ParallelGraph(Graph):
-    def __init__(self, layers, width, comm, node_class=Timing):
+    def __init__(self, layers, width, comm, node_class=Timing, node_kwargs=None):
 
         # Initialize node list - L layers of width W, plus 1 output node
-        nodes = [node_class() for _ in range((layers * width))] + [Append()]
+        if node_kwargs is None:
+            node_kwargs = dict()
+        nodes = [node_class(**node_kwargs) for _ in range((layers * width))] + [Append()]
 
         # Initialize parallel permutation connection pattern. Note that anywhere we use np.random,
         # we must either set the seed across processors or broadcast the result from a single proc.

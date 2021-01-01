@@ -4,3 +4,12 @@ __pycache__/*
 
 # Binaries
 *.pyc
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Result files
+experiments/pickle/
+
+# Package files
+graph_rl.egg-info/
