@@ -58,7 +58,7 @@ class Session:
         return np.median(times)
 
     def learn_assignments(
-        self, x: Any, graph: Graph, n_iter: int = 1000, timing_runs: int = 1
+        self, x: Any, graph: Graph, n_iter: int = 1000, timing_runs: int = 1, init_runs: int = 1,
     ) -> np.array:
 
         # Initialize local vars on the master process
@@ -72,6 +72,16 @@ class Session:
             times = None
             best_times = None
         best_proc_assignment = None
+
+        # Loop over init_runs to "skip" the slower runs that include initialization
+        for i in range(init_runs):
+            if self.comm.rank == 0:
+                proc_list = np.random.randint(self.comm.size, size=len(graph.nodes))
+            else:
+                proc_list = None
+            proc_list = self.comm.bcast(proc_list, root=0)
+            graph.proc_init(proc_list)
+            _ = self.time_graph(x, graph, timing_runs)
 
         # Loop over iterations
         for i in range(n_iter):
