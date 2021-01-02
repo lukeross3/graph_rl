@@ -1,4 +1,5 @@
-from typing import List, Tuple, Any
+import abc
+from typing import List, Tuple, Any, Optional
 
 import numpy as np
 from mpi4py import MPI
@@ -22,6 +23,13 @@ class Graph:
     def __init__(
         self, nodes: List[Node], connections: List[Tuple[int, int]], comm: MPI.Comm
     ) -> None:
+        """Initialize the graph instance
+
+        Args:
+            nodes (List[Node]): List of Node objects
+            connections (List[Tuple[int, int]]): List of connections between nodes in the graph
+            comm (MPI.Comm): MPI Comm object
+        """
         self.nodes = nodes
         self.comm = comm
         self._parse_graph(connections)
@@ -152,7 +160,29 @@ class Graph:
 
 
 class ParallelGraph(Graph):
-    def __init__(self, layers, width, comm, node_class=Timing, node_kwargs=None):
+    """Special Graph arangement capable of perfect linear scaling. A Parallel Permutation Graph
+    consists of L layers of width W. Each layer consists of W nodes, each with a single input
+    and a single output dependency. The dependencies between each layer are randomized by permuting
+    the indices of each node in the layer."""
+
+    def __init__(
+        self,
+        layers,
+        width,
+        comm,
+        node_class: abc.ABCMeta = Timing,
+        node_kwargs: Optional[dict] = None,
+    ) -> None:
+        """Initialize the Parallel Permutation Graph instance
+
+        Args:
+            layers ([type]): Number of layers
+            width ([type]): Number of nodes per layer
+            comm ([type]): MPI Comm object
+            node_class (abc.ABCMeta, optional): Node class to use in graph. Defaults to Timing.
+            node_kwargs (Optional[dict], optional): Any keyword args to pass to node initialization.
+                Defaults to None.
+        """
 
         # Initialize node list - L layers of width W, plus 1 output node
         if node_kwargs is None:

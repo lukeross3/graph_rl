@@ -9,7 +9,19 @@ from graph_rl.controllers import Controller, DummyController
 
 
 class Session:
+    """Class to manage learning of assignments for a given graph and controller."""
+
     def __init__(self, comm: MPI.Comm, controller: Controller) -> None:
+        """Initialize the session instance
+
+        Args:
+            comm (MPI.Comm): MPI Comm object
+            controller (Controller): graph_rl Controller object to search for proc assignments
+
+        Raises:
+            ValueError: If the master process is a Dummy Controller or any of the non-master
+                processes is not a Dummy Controller.
+        """
         # Assign instance variables
         self.comm = comm
         self.controller = controller
@@ -44,7 +56,7 @@ class Session:
             n (int, optional): Number of runs to take median over. Defaults to 1.
 
         Returns:
-            float: [description]
+            float: median of n runs of the graph's parallel execution time.
         """
         times = np.empty(n)
         for i in range(n):
@@ -58,8 +70,34 @@ class Session:
         return np.median(times)
 
     def learn_assignments(
-        self, x: Any, graph: Graph, n_iter: int = 1000, timing_runs: int = 1, init_runs: int = 1,
-    ) -> np.array:
+        self,
+        x: Any,
+        graph: Graph,
+        n_iter: int = 1000,
+        timing_runs: int = 1,
+        init_runs: int = 1,
+    ) -> Tuple[np.array, np.array, np.array, np.array]:
+        """Use the session's controller to search for optimal processor assignments for the graph.
+
+        Args:
+            x (Any): A sample input to use for timing the execution of the graph
+            graph (Graph): Graph to time and optimize
+            n_iter (int, optional): Number of processor assignments to generate and measure during
+                search. Defaults to 1000.
+            timing_runs (int, optional): When timing the execution of the graph, the final time
+                reported at each iteration is the median of `timing_runs` runs. Defaults to 1.
+            init_runs (int, optional): The first run of the graph is notably slower than all
+                subsequent runs due to various initialization factors. If nonzero, this parameter
+                generates `init_runs` random processor assignments and runs the graph on x using
+                them before beginning the search process. Defaults to 1.
+
+        Returns:
+            Tuple[np.array, np.array, np.array, np.array]: 0th return value: length of time since
+                the search process started, measured at each iteration. 1st return value: Graph
+                execution time for processor assignments at each iteration. 2nd return value: The
+                best graph execution time as of each iteration. 3rd return value: The best
+                processor assignment generated throughout the search process.
+        """
 
         # Initialize local vars on the master process
         if self._is_master():
@@ -105,8 +143,6 @@ class Session:
                     best_proc_assignment = proc_list
                 else:
                     best_times[i] = best_time
-
-            # TODO: Extra timing if best time?
 
         # Broadcast the results
         iter_times = self.comm.bcast(iter_times, root=0)
