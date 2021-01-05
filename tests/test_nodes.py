@@ -1,6 +1,6 @@
 import pytest
 
-from graph_rl import Timing, AddN
+from graph_rl import Timing, AddN, Append
 
 
 @pytest.mark.mpi_skip()
@@ -41,6 +41,26 @@ def test_timing_node(mocker):
     assert result == x
     assert node.output == x
     mock_sleep.assert_called_with(sleep_time)
+
+    # Reset the node
+    node.reset()
+    assert node.output is None
+
+
+@pytest.mark.mpi_skip()
+def test_append_node():
+
+    # Initialize the node
+    n = 1.5
+    node = Append()
+    assert node.output is None
+
+    # Run forward pass
+    x = 42
+    y = 101
+    result = node.forward(x, y)
+    assert result == [x, y]
+    assert node.output == [x, y]
 
     # Reset the node
     node.reset()
