@@ -1,6 +1,15 @@
 import pytest
+import numpy as np
 
-from graph_rl import Session, DummyController, RandomController
+from graph_rl import Session, DummyController, RandomController, AddN, Graph
+
+
+def _is_monotonic_increasing(x: np.array) -> bool:
+    return np.all(np.diff(x) >= 0)
+
+
+def _is_monotonic_decreasing(x: np.array) -> bool:
+    return np.all(np.diff(x) <= 0)
 
 
 @pytest.mark.mpi_skip()
@@ -39,11 +48,74 @@ def test_init(mocker):
     assert sess.comm.rank == 1
 
 
-@pytest.mark.mpi_skip()
+@pytest.mark.mpi(min_size=2)
 def test_time_graph():
-    pass
+
+    # Import MPI
+    from mpi4py import MPI
+
+    # Init the graph
+    nodes = [AddN(1) for _ in range(4)]
+    connections = [
+        (-1, 0),
+        (0, 1),
+        (1, 2),
+        (2, 3),
+    ]
+    comm = MPI.COMM_WORLD
+    g = Graph(nodes, connections, comm)
+
+    # Assign nodes to processors
+    proc_list = [0, 1, 0, 1]
+    g.proc_init(proc_list)
+
+    # Init the session object
+    if comm.rank == 0:
+        controller = RandomController()
+    else:
+        controller = DummyController()
+    sess = Session(comm, controller)
+
+    # Time once
+    t = sess.time_graph(42, g, n=1)
+    assert isinstance(t, float)
+
+    # Time as median of 3 runs
+    t = sess.time_graph(42, g, n=3)
+    assert isinstance(t, float)
 
 
-@pytest.mark.mpi_skip()
+@pytest.mark.mpi(min_size=2)
 def test_learn_assignments():
-    pass
+
+    # Import MPI
+    from mpi4py import MPI
+
+    # Init the graph
+    nodes = [AddN(1) for _ in range(4)]
+    connections = [
+        (-1, 0),
+        (0, 1),
+        (1, 2),
+        (2, 3),
+    ]
+    comm = MPI.COMM_WORLD
+    g = Graph(nodes, connections, comm)
+
+    # Init the session object
+    if comm.rank == 0:
+        controller = RandomController()
+    else:
+        controller = DummyController()
+    sess = Session(comm, controller)
+
+    # Learn assignments with default values
+    n_iter = 10
+    iter_times, times, best_times, best_proc_assignment = sess.learn_assignments(
+        42, g, n_iter=n_iter
+    )
+    assert len(iter_times) == len(times) == len(best_times) == n_iter
+    assert len(best_proc_assignment) == len(nodes)
+    assert _is_monotonic_increasing(iter_times)
+    assert _is_monotonic_decreasing(best_times)
+    assert not (_is_monotonic_increasing(times) or _is_monotonic_decreasing(times))
