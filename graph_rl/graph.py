@@ -1,8 +1,10 @@
-from typing import List, Tuple, Any
+import abc
+from typing import List, Tuple, Any, Optional
 
+import numpy as np
 from mpi4py import MPI
 
-from graph_rl import Node
+from graph_rl.nodes import Node, Timing, Append
 
 
 class Graph:
@@ -21,6 +23,13 @@ class Graph:
     def __init__(
         self, nodes: List[Node], connections: List[Tuple[int, int]], comm: MPI.Comm
     ) -> None:
+        """Initialize the graph instance
+
+        Args:
+            nodes (List[Node]): List of Node objects
+            connections (List[Tuple[int, int]]): List of connections between nodes in the graph
+            comm (MPI.Comm): MPI Comm object
+        """
         self.nodes = nodes
         self.comm = comm
         self._parse_graph(connections)
@@ -148,3 +157,53 @@ class Graph:
         """Reset each node in the graph, deleting any stored output_data"""
         for i in range(len(self.nodes)):
             self.nodes[i].reset()
+
+
+class ParallelGraph(Graph):
+    """Special Graph arangement capable of perfect linear scaling. A Parallel Permutation Graph
+    consists of L layers of width W. Each layer consists of W nodes, each with a single input
+    and a single output dependency. The dependencies between each layer are randomized by permuting
+    the indices of each node in the layer."""
+
+    def __init__(
+        self,
+        layers,
+        width,
+        comm,
+        node_class: abc.ABCMeta = Timing,
+        node_kwargs: Optional[dict] = None,
+    ) -> None:
+        """Initialize the Parallel Permutation Graph instance
+
+        Args:
+            layers ([type]): Number of layers
+            width ([type]): Number of nodes per layer
+            comm ([type]): MPI Comm object
+            node_class (abc.ABCMeta, optional): Node class to use in graph. Defaults to Timing.
+            node_kwargs (Optional[dict], optional): Any keyword args to pass to node initialization.
+                Defaults to None.
+        """
+
+        # Initialize node list - L layers of width W, plus 1 output node
+        if node_kwargs is None:
+            node_kwargs = dict()
+        nodes = [node_class(**node_kwargs) for _ in range((layers * width))] + [Append()]
+
+        # Initialize parallel permutation connection pattern. Note that anywhere we use np.random,
+        # we must either set the seed across processors or broadcast the result from a single proc.
+        if comm.rank == 0:
+            connections = [(-1, i) for i in range(width)]  # input to first layer
+            for layer_idx in range(layers - 1):
+                permuted = np.random.permutation(np.arange(width))
+                layer_connections = [
+                    (layer_idx * width + i, (layer_idx + 1) * width + permuted[i])
+                    for i in range(width)
+                ]
+                connections.extend(layer_connections)
+            connections.extend([((layers - 1) * width + i, len(nodes) - 1) for i in range(width)])
+        else:
+            connections = None
+        connections = comm.bcast(connections, root=0)
+
+        # Super call
+        super().__init__(nodes, connections, comm)

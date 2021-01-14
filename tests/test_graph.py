@@ -1,6 +1,6 @@
 import pytest
 
-from graph_rl import Graph, AddN
+from graph_rl import Graph, ParallelGraph, AddN, Timing
 
 
 @pytest.mark.mpi_skip()
@@ -129,3 +129,31 @@ def test_forward():
                 assert node.output is None
             else:  # Any computed node
                 assert node.output is not None
+
+
+@pytest.mark.mpi_skip()
+def test_parallel_graph(mocker):
+
+    # Mock comm object
+    comm = mocker.Mock()
+    comm.rank = 0
+
+    def identity(x, **kwargs):
+        return x
+
+    comm.bcast.side_effect = identity
+
+    # Initialize Parallel Graph and check attributes
+    g = ParallelGraph(3, 5, comm, node_class=Timing, node_kwargs={"t": 0})
+    assert len(g.nodes) == (3 * 5) + 1
+    assert g.nodes[0].t == 0
+
+    # Initialize Parallel Graph with defaults
+    g = ParallelGraph(3, 5, comm)
+    assert len(g.nodes) == (3 * 5) + 1
+    assert g.nodes[0].t == 0.01
+
+    # Initialize Parallel Graph as rank 1, will try to init Graph with connections=None
+    comm.rank = 1
+    with pytest.raises(TypeError):
+        g = ParallelGraph(3, 5, comm)
