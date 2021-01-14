@@ -9,8 +9,8 @@ setup:
 	black -l 100 setup.py
 
 requirements:
-	poetry export -f requirements.txt --output docker/requirements.txt
-	poetry export -f requirements.txt --dev --output docker/dev_requirements.txt
+	poetry export -f requirements.txt --without-hashes --output docker/requirements.txt
+	poetry export -f requirements.txt --without-hashes --dev --output docker/dev_requirements.txt
 
 reqs: setup requirements version
 
