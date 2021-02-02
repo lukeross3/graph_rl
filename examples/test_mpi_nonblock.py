@@ -1,5 +1,5 @@
-# Run with command: 'mpiexec -np 2 python examples/test_mpi.py'
-
+# Run with command: 'mpiexec -np 2 python examples/test_mpi_nonblock.py'
+##### TODO: Doesn't work on windows!!
 from mpi4py import MPI
 import numpy as np
 

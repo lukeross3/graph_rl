@@ -21,7 +21,12 @@ setup(
     packages=["graph_rl"],
     package_dir={"": "."},
     package_data={},
-    install_requires=["matplotlib==3.*,>=3.3.3", "mpi4py==3.*,>=3.0.3", "numpy==1.*,>=1.19.4"],
+    install_requires=[
+        "matplotlib==3.*,>=3.3.3",
+        "mpi4py==3.*,>=3.0.3",
+        "numpy==1.*,>=1.19.4",
+        "torch==1.*,>=1.7.1",
+    ],
     extras_require={
         "dev": [
             "black==20.*,>=20.8.0.b1",
