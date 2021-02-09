@@ -1,3 +1,5 @@
+import copy
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -20,9 +22,8 @@ def count_parameters(model: nn.Module) -> int:
 class TFEncoderWithEmbs(nn.Module):
     def __init__(
         self,
-        n_nodes: int,
+        n_procs: int,
         d_model: int = 32,
-        d_emb: int = 32,
         n_heads: int = 4,
         dim_feedforward: int = 2048,
         n_layers: int = 4,
@@ -46,11 +47,8 @@ class TFEncoderWithEmbs(nn.Module):
 
         super(TFEncoderWithEmbs, self).__init__()
 
-        # Store dimensionalities
-        self.d_emb = d_emb
-
         # Initialize embedding layer
-        self.embeddings = nn.EmbeddingBag(n_nodes, d_emb, mode="sum")
+        self.embeddings = nn.EmbeddingBag(n_procs, d_model, mode="sum")
 
         # Initialize transformer model
         encoder_layer = nn.TransformerEncoderLayer(
@@ -79,7 +77,17 @@ class TFEncoderWithEmbs(nn.Module):
         offsets = []
         for node in graph.nodes:
             offsets.append(len(inputs))
-            inputs.extend(node.input_dependencies)
+
+            # Edge case for nodes requiring the first input
+            if -1 in node.input_dependencies:
+                tmp = copy.copy(node.input_dependencies)  # Make a copy to avoid mutating the node
+                tmp.remove(-1)
+                inputs.extend(tmp)
+            else:
+                inputs.extend(node.input_dependencies)
+
+        # Cast to Tensor and get embeddings
+        # SHAPE: (n_nodes X batch X d_model)
         inputs = torch.LongTensor(inputs)
         offsets = torch.LongTensor(offsets)
         embs = self.embeddings(inputs, offsets)
@@ -88,12 +96,15 @@ class TFEncoderWithEmbs(nn.Module):
         print("embs: ", embs)
 
         # Run through transformer
+        # SHAPE: (n_nodes X batch X d_model)
         out = self.transformer_encoder(embs)
 
-        print("out: ", out)  # Why is this nan?
+        print("out: ", out)
+
+        ##### TODO: Need linear layer to cast d_model to n_procs
 
         # Compute softmax
-        probs = F.softmax(out, dim=1)
+        probs = F.softmax(out, dim=2)
 
         print("probs: ", probs)
 
@@ -106,7 +117,7 @@ class TFDecoderWithEmbs(nn.Module):
 
 import torch
 
-model = TFEncoderWithEmbs(6)
+model = TFEncoderWithEmbs(n_procs=3, n_layers=1)
 print(count_parameters(model))
 
 # Import MPI
@@ -114,7 +125,7 @@ from mpi4py import MPI
 from graph_rl import AddN
 
 # Init the graph
-nodes = [AddN(1) for _ in range(4)]
+nodes = [AddN(1) for _ in range(5)]
 connections = [
     (-1, 0),
     (0, 1),
