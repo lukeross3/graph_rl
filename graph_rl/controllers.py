@@ -57,13 +57,19 @@ class RandomController(Controller):
 class TransformerController(Controller):
     """Controller for RL-based search of processor assignments"""
 
-    def __init__(self, model: nn.Module) -> None:
+    def __init__(self, model: nn.Module, update_size: int = 8) -> None:
         """Initialize the Controller
 
         Args:
             model (nn.Module): Pytorch model
+            update_size (int, optional): Number of forward passes to run and store before running
+                backward pass.
         """
         self.model = model
+        self.update_size = update_size
+        self.n_forward_passes = 0
+        self.probs_tensor = None
+        self.rewards = None
 
     def pick_procs(self, graph: Graph, n_procs: int) -> np.ndarray:
         """Generate node assignments using controller model for the input graph
@@ -75,4 +81,17 @@ class TransformerController(Controller):
         Returns:
             np.ndarray: Processor assignments, ordered according to the input graph's node list.
         """
-        return [0]
+        
+        # Run model if previous batch has run out or it's the first pass
+        if (self.n_forward_passes == self.update_size - 1) or (self.probs_tensor is None):
+            self.n_forward_passes = 0
+            self.probs_tensor = self.model(graph, batch_size=self.update_size)
+
+        # Sample from generated probability distribution
+        procs = [0]
+
+        # Increment the number of forward passes
+        self.n_forward_passes += 1
+
+        return procs
+        

@@ -33,6 +33,7 @@ class TFEncoderWithEmbs(nn.Module):
         """Initialize the Model
 
         Args:
+            n_procs (int): the number of processors available.
             d_model (int, optional): the number of expected features in the input. Defaults to 32.
             n_heads (int, optional): the number of heads in the multiheadattention models. Default
                 to 4.
@@ -60,16 +61,22 @@ class TFEncoderWithEmbs(nn.Module):
         )
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=n_layers)
 
-    def forward(self, graph: Graph) -> torch.Tensor:
+        # Initialize output linear layer
+        self.linear = nn.Linear(in_features=d_model, out_features=n_procs)
+
+    def forward(self, graph: Graph, batch_size: int = 1) -> torch.Tensor:
         """Generate probability distribution over processor assignments from graph
 
         Args:
-            graph (Graph): Graph for which to generate processor assignment
+            graph (Graph): Graph for which to generate processor assignment distributions
+            batch_size (int, optional): Number of different distributions to run on the graph. Note
+                that if dropout is not enabled (e.g. model is in eval mode) then all generated
+                distributions will be identical. Defaults to 1.
 
         Returns:
-            torch.Tensor: (n x p)-dimensional tensor where n is the number of nodes and p is the
-                number of processors. Produces a probability distribution over processors for each
-                node.
+            torch.Tensor: (n_nodes X batch_size X n_procs)-dimensional tensor. Produces a
+                probability distribution over processors for each node. For an output tensor T,
+                sum(T[i][j][:]) == 1.
         """
 
         # Get embeddings from EmbeddingBag
@@ -92,30 +99,29 @@ class TFEncoderWithEmbs(nn.Module):
         offsets = torch.LongTensor(offsets)
         embs = self.embeddings(inputs, offsets)
         embs = torch.unsqueeze(embs, 1)
+        embs = embs.repeat(1, batch_size, 1)
 
-        print("embs: ", embs)
+        # print("embs: ", embs.shape)
 
         # Run through transformer
         # SHAPE: (n_nodes X batch X d_model)
-        out = self.transformer_encoder(embs)
+        tf_out = self.transformer_encoder(embs)
 
-        print("out: ", out)
+        # print("tf_out: ", tf_out.shape)
 
-        ##### TODO: Need linear layer to cast d_model to n_procs
+        # Linear layer to cast output to right number of classes (n_procs)
+        # SHAPE: (n_nodes X batch X n_procs)
+        out = self.linear(tf_out)
+
+        # print("out: ", out.shape)
 
         # Compute softmax
         probs = F.softmax(out, dim=2)
 
-        print("probs: ", probs)
+        # print("probs: ", probs)
 
         return probs
 
-
-class TFDecoderWithEmbs(nn.Module):
-    pass
-
-
-import torch
 
 model = TFEncoderWithEmbs(n_procs=3, n_layers=1)
 print(count_parameters(model))
@@ -134,4 +140,4 @@ connections = [
 ]
 comm = MPI.COMM_WORLD
 g = Graph(nodes, connections, comm)
-y = model(g)
+y = model(g, batch_size=9)
