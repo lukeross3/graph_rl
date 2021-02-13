@@ -1,6 +1,6 @@
 import pytest
 
-from graph_rl import DummyController, RandomController
+from graph_rl.controllers import DummyController, RandomController
 
 
 @pytest.mark.mpi_skip()

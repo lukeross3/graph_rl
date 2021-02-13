@@ -45,7 +45,6 @@ class TFEncoderWithEmbs(nn.Module):
             activation (str, optional): the activation function of intermediate layer, relu or gelu.
                 Defaults to "relu".
         """
-
         super(TFEncoderWithEmbs, self).__init__()
 
         # Initialize embedding layer
@@ -101,43 +100,15 @@ class TFEncoderWithEmbs(nn.Module):
         embs = torch.unsqueeze(embs, 1)
         embs = embs.repeat(1, batch_size, 1)
 
-        # print("embs: ", embs.shape)
-
         # Run through transformer
         # SHAPE: (n_nodes X batch X d_model)
         tf_out = self.transformer_encoder(embs)
-
-        # print("tf_out: ", tf_out.shape)
 
         # Linear layer to cast output to right number of classes (n_procs)
         # SHAPE: (n_nodes X batch X n_procs)
         out = self.linear(tf_out)
 
-        # print("out: ", out.shape)
-
         # Compute softmax
         probs = F.softmax(out, dim=2)
 
-        # print("probs: ", probs)
-
         return probs
-
-
-model = TFEncoderWithEmbs(n_procs=3, n_layers=1)
-print(count_parameters(model))
-
-# Import MPI
-from mpi4py import MPI
-from graph_rl import AddN
-
-# Init the graph
-nodes = [AddN(1) for _ in range(5)]
-connections = [
-    (-1, 0),
-    (0, 1),
-    (1, 2),
-    (2, 3),
-]
-comm = MPI.COMM_WORLD
-g = Graph(nodes, connections, comm)
-y = model(g, batch_size=9)

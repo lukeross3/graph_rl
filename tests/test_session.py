@@ -1,7 +1,10 @@
 import pytest
 import numpy as np
 
-from graph_rl import Session, DummyController, RandomController, AddN, Graph
+from graph_rl.session import Session
+from graph_rl.controllers import DummyController, RandomController
+from graph_rl.nodes import AddN
+from graph_rl.graph import Graph
 
 
 def _is_monotonic_increasing(x: np.array) -> bool:

@@ -1,6 +1,7 @@
 import pytest
 
-from graph_rl import Graph, ParallelGraph, AddN, Timing
+from graph_rl.graph import Graph, ParallelGraph
+from graph_rl.nodes import AddN, Timing
 
 
 @pytest.mark.mpi_skip()
