@@ -9,6 +9,7 @@ import graph_rl
 from graph_rl.graph import ParallelGraph
 from graph_rl.controllers import DummyController
 from graph_rl.session import Session
+from graph_rl.models import TFEncoderWithEmbs
 
 
 # Parse command line args
@@ -89,8 +90,10 @@ x = np.ones(args.input_length)
 
 # Initialize controllers
 if comm.rank == 0:
-    controller_module = getattr(graph_rl, args.controller)
-    controller = controller_module()
+    if args.controller == "TransformerController":  # TODO
+        model = TFEncoderWithEmbs(comm.size)
+    controller_module = getattr(graph_rl.controllers, args.controller)
+    controller = controller_module(model)  # TODO
 else:
     controller = DummyController()
 

@@ -132,6 +132,7 @@ class Session:
             # Time the forward pass and update local vars
             t = self.time_graph(x, graph, timing_runs)
             if self._is_master():
+                self.controller.register_times([t])
                 iter_times[i] = time.time() - start_time
                 times[i] = t
                 if i == 0:
