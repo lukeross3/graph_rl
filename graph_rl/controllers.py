@@ -87,7 +87,12 @@ class TransformerController(Controller):
     """Controller for RL-based search of processor assignments"""
 
     def __init__(
-        self, model: nn.Module, update_size: int = 8, use_baseline: bool = True, lr: float = 1e-3
+        self,
+        model: nn.Module,
+        update_size: int = 8,
+        lr: float = 1e-3,
+        use_baseline: bool = True,
+        use_sqrt: bool = True,
     ) -> None:
         """Initialize the Controller
 
@@ -95,14 +100,17 @@ class TransformerController(Controller):
             model (nn.Module): Pytorch model
             update_size (int, optional): Number of forward passes to run and store before running
                 backward pass.
+            lr (float, optional): Learning rate for Adam optimizer. Defaults to 1e-3.
             use_baseline (bool, optional): Whether or not to use an average baseline in the
                 reinforce loss calculation. Defaults to True.
-            lr (float, optional): Learning rate for Adam optimizer. Defaults to 1e-3.
+            use_sqrt (bool, optional): Whether or not to use square root of times as the reward
+                signal. Defaults to True.
         """
         # Modeling vars
         self.model = model
         self.update_size = update_size
         self.use_baseline = use_baseline
+        self.use_sqrt = use_sqrt
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
 
         # Bookkeeping vars
@@ -135,8 +143,15 @@ class TransformerController(Controller):
         # Compute loss and run backward pass
         self.optimizer.zero_grad()
         rewards = torch.Tensor(self.times)
+        if self.use_sqrt:
+            rewards = torch.sqrt(rewards)
         if self.use_baseline:
             rewards = rewards - torch.mean(rewards)
+        print(self.log_probs.shape)
+        print(rewards.shape)
+        print((-self.log_probs * rewards).shape, flush=True)
+        ##### TODO: what should the shapes be here? Read paper
+        # Do the math on paper, sum of log probs might be right
         loss = (-self.log_probs * rewards).sum()
         loss.backward()
         self.optimizer.step()
